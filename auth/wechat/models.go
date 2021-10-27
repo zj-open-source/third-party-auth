@@ -86,3 +86,16 @@ type WxUserInfo struct {
 }
 
 // endregion WXUser
+
+// WxUserPhoneInfo 微信用户信息
+type WxUserPhoneInfo struct {
+	PhoneNumber     string `json:"phoneNumber"`     // 用户绑定的手机号（国外手机号会有区号）
+	PurePhoneNumber string `json:"purePhoneNumber"` // 没有区号的手机号
+	CountryCode     string `json:"countryCode"`     // 区号
+	Watermark       struct {
+		Timestamp int64  `json:"timestamp"`
+		AppID     string `json:"appid"`
+	} `json:"watermark"`
+}
+
+// endregion WxUserPhoneInfo

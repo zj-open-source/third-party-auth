@@ -16,50 +16,51 @@ var (
 	ErrInvalidPKCS7Padding = errors.New("invalid padding on input")
 )
 
-type WXUserDataCrypt struct {
+type WXDataCrypt struct {
 	appId      string
 	sessionKey string
 }
 
-func NewWXUserDataCrypt(appid, sessionKey string) *WXUserDataCrypt {
-	return &WXUserDataCrypt{
+func NewWXDataCrypt(appid, sessionKey string) *WXDataCrypt {
+	return &WXDataCrypt{
 		appId:      appid,
 		sessionKey: sessionKey,
 	}
 }
 
-func (w *WXUserDataCrypt) Decrypt(encryptedData, iv string) (*WxUserInfo, error) {
+// Decrypt WeChat data decrypt
+// The appid is judged by the external
+// business layer, and the decryption layer
+// is only responsible for decoding,
+// and does not judge the accuracy of the data.
+func (w *WXDataCrypt) Decrypt(encryptedData, iv string, res interface{}) error {
 	aesKey, err := base64.StdEncoding.DecodeString(w.sessionKey)
 	if err != nil {
-		return nil, err
+		return err
 	}
 	cipherText, err := base64.StdEncoding.DecodeString(encryptedData)
 	if err != nil {
-		return nil, err
+		return err
 	}
 	ivBytes, err := base64.StdEncoding.DecodeString(iv)
 	if err != nil {
-		return nil, err
+		return err
 	}
 	block, err := aes.NewCipher(aesKey)
 	if err != nil {
-		return nil, err
+		return err
 	}
 	mode := cipher.NewCBCDecrypter(block, ivBytes)
 	mode.CryptBlocks(cipherText, cipherText)
 	cipherText, err = pkcs7Unpad(cipherText, block.BlockSize())
 	if err != nil {
-		return nil, err
+		return err
 	}
-	var userInfo WxUserInfo
-	err = json.Unmarshal(cipherText, &userInfo)
+	err = json.Unmarshal(cipherText, res)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	if userInfo.Watermark.AppID != w.appId {
-		return nil, ErrAppIDNotMatch
-	}
-	return &userInfo, nil
+	return nil
 }
 
 // pkcs7Unpad returns slice of the original data without padding
